@@ -1,0 +1,90 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+class Complaint {
+  String title;
+  String description;
+
+  Complaint({required this.title, required this.description});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+    };
+  }
+}
+
+class ComplaintService {
+  Future<void> submitComplaint(Complaint complaint) async {
+    final url = Uri.parse(
+        'https://example.com/api/complaints'); // Replace with the required URL
+    await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(complaint.toJson()),
+    );
+  }
+}
+
+void main() {
+  runApp(ComplaintApp());
+}
+
+class ComplaintApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: ComplaintForm(),
+    );
+  }
+}
+
+class ComplaintForm extends StatefulWidget {
+  @override
+  _ComplaintFormState createState() => _ComplaintFormState();
+}
+
+class _ComplaintFormState extends State<ComplaintForm> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  void _submitComplaint() {
+    final title = _titleController.text;
+    final description = _descriptionController.text;
+    if (title.isNotEmpty && description.isNotEmpty) {
+      Complaint complaint = Complaint(title: title, description: description);
+      ComplaintService().submitComplaint(complaint);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Complaint submitted!')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Submit Complaint')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(labelText: 'Description'),
+              maxLines: 4,
+            ),
+            ElevatedButton(
+              onPressed: _submitComplaint,
+              child: Text('Submit Complaint'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
